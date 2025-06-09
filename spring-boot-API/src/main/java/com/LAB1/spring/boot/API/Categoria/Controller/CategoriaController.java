@@ -1,5 +1,6 @@
 package com.LAB1.spring.boot.API.Categoria.Controller;
 
+import com.LAB1.spring.boot.API.Categoria.DTO.CategoriaDTO;
 import com.LAB1.spring.boot.API.Categoria.Model.Categoria;
 import com.LAB1.spring.boot.API.Categoria.Service.CategoriaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,9 @@ public class CategoriaController {
     //Crear nueva categoria
 
     @PostMapping("/categoria")
-    public ResponseEntity<?> addProduct(@RequestBody Categoria categoria) {
+    public ResponseEntity<?> addProduct(@RequestBody CategoriaDTO categoriaDTO) {
         try{
-            Categoria newCategoria = categoriaService.saveCategoria(categoria);
+            CategoriaDTO newCategoriaDTO = categoriaService.saveCategoria(categoriaDTO);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("Categoria creado con exito");
         }catch(Exception e){
             System.err.println("Error al crear la categoria: "+e.getMessage());
@@ -39,7 +40,7 @@ public class CategoriaController {
     @GetMapping("/categoria")
     public ResponseEntity<?> getAllCategoria() {
         try{
-            List<Categoria> categorias = categoriaService.getAllCategorias();
+            List<CategoriaDTO> categorias = categoriaService.getAllCategorias();
             return ResponseEntity.ok(categorias);
         }catch(Exception e){
             System.err.println("Error al obtener las categorias: "+e.getMessage());
@@ -50,24 +51,34 @@ public class CategoriaController {
     @GetMapping("/categoria/{id}")
     public ResponseEntity<?> getCategoriaById(@PathVariable int id) {
         try{
-            Optional<Categoria> categoria = categoriaService.getCategoria(id);
+            Optional<CategoriaDTO> categoria = categoriaService.getCategoria(id);
             return categoria.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
         }catch(Exception e){
             System.err.println("Error al obtener la categoria: "+e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al obtener la categoria");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Error al obtener la categoria");
         }
     }
 
     @PutMapping("/categoria/{id}")
-    public ResponseEntity<?> updateCategoria(@PathVariable int id,@RequestBody Categoria categoria) {
+    public ResponseEntity<?> updateCategoria(@PathVariable int id,@RequestBody CategoriaDTO categoriaDTO) {
         try{
-            Categoria updatedCategoria = categoriaService.updateCategoria(id, categoria);
+            CategoriaDTO updatedCategoria = categoriaService.updateCategoria(id, categoriaDTO);
             return ResponseEntity.ok(updatedCategoria);
         }catch(Exception e){
             System.err.println("Error al actualizar la categoria: "+e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la categoria");
         }
+    }
 
+    @DeleteMapping("/categoria/{id}")
+    public ResponseEntity<?> deleteCategoria(@PathVariable int id) {
+        try{
+            categoriaService.deleteCategoria(id);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("Categoria eliminada con exito");
+        }catch(Exception e){
+            System.err.println("Error al eliminar la categoria: "+e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la categoria");
+        }
     }
 
 }

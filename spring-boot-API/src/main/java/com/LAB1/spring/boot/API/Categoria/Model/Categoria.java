@@ -7,8 +7,8 @@ import jakarta.persistence.*;
 public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) private Integer id;
-    @Column (name="nombre")private String nombre;
-    @Column (name="descripcion")private String descripcion;
+    @Column (name="nombre",nullable = false)private String nombre;
+    @Column (name="descripcion",nullable = false)private String descripcion;
     public Categoria() {
 
     }
