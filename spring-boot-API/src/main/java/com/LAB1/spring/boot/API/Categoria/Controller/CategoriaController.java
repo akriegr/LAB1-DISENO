@@ -26,7 +26,7 @@ public class CategoriaController {
     //Crear nueva categoria
 
     @PostMapping("/categoria")
-    public ResponseEntity<?> addProduct(@RequestBody CategoriaDTO categoriaDTO) {
+    public ResponseEntity<?> addCategoria(@RequestBody CategoriaDTO categoriaDTO) {
         try{
             CategoriaDTO newCategoriaDTO = categoriaService.saveCategoria(categoriaDTO);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("Categoria creado con exito");
