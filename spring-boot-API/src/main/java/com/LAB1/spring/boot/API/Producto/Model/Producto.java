@@ -3,7 +3,7 @@ import com.LAB1.spring.boot.API.Categoria.Model.Categoria;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name="AK_Producto", schema = "u484426513_dsc225")
+@Table(name="AK_Producto")
 public class Producto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) private Integer id;

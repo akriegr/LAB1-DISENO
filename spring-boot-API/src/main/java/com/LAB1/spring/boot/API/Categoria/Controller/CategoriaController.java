@@ -48,6 +48,7 @@ public class CategoriaController {
         }
     }
 
+    //Obtener categoria especifica
     @GetMapping("/categoria/{id}")
     public ResponseEntity<?> getCategoriaById(@PathVariable int id) {
         try{

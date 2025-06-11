@@ -18,6 +18,11 @@ public class CategoriaService {
         this.categoriaRepository = categoriaRepository;
     }
 
+    //Obtener Entidad - lo uso para obtener entidades internas
+    public Categoria getCategoriaEntity(Integer id) {
+        return categoriaRepository.findById(id).orElse(null);
+    }
+
     //Convertir DTO a Entidad
     private Categoria convertirCategoria(CategoriaDTO categoriaDTO) {
         Categoria categoria = new Categoria();
@@ -50,7 +55,7 @@ public class CategoriaService {
                 .collect(Collectors.toList());
     }
 
-    //Buscar por id
+    //Buscar por id - lo uso para obtener un DTO que uso para el API
     public Optional<CategoriaDTO> getCategoria(Integer id) {
         return categoriaRepository.findById(id)
                 .map(this::convertirCategoriaDTO);
