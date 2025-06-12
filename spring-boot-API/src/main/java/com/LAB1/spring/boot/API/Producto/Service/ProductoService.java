@@ -25,6 +25,11 @@ public class ProductoService {
         this.categoriaService = categoriaService;
     }
 
+    //Obtener Entidad - lo uso para obtener entidades internas
+    public Producto getProductoEntity(Integer id) {
+        return productoRepository.findById(id).orElse(null);
+    }
+
     //Convertir DTO a Entidad
     private Producto convertirProducto(ProductoDTO productoDTO) {
         Producto producto = new Producto();
