@@ -82,4 +82,24 @@ public class InventarioService {
         inventarioRepository.deleteById(id);
     }
 
+    //Revisar si hay suficiente Inventario para la venta
+    public boolean revisarSufInvent(Integer idProducto,int cantidad) {
+        Optional<Inventario> inventarioEncontrado = inventarioRepository.findByProductoId(idProducto);
+        if(!inventarioEncontrado.isPresent()){
+            return false;
+        }
+        Inventario inventario = inventarioEncontrado.get();
+        int cantidadActual = inventario.getCantidad();
+        if(cantidadActual >= cantidad){
+            //si hay suficiente
+            int nuevaCantidad = cantidadActual - cantidad;
+            inventario.setCantidad(nuevaCantidad);
+            inventarioRepository.save(inventario);
+            return true;
+        }else{
+            //si no hay suficiente
+            return false;
+        }
+    }
+
 }

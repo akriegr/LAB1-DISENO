@@ -26,7 +26,7 @@ public class ProductoController {
     @PostMapping("/producto")
     public ResponseEntity<?> addProducto(@RequestBody ProductoDTO productoDTO) {
         try{
-            ProductoDTO nuevoProducto = productoService.saveProducto(productoDTO);
+            productoService.saveProducto(productoDTO);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body("Producto creado con exito");
         }catch(Exception e){
             System.err.println("Error al crear el producto: "+e.getMessage());
