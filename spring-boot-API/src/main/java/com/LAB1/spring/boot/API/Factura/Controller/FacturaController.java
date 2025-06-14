@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/LAB")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class FacturaController {
     private final FacturaService facturaService;
 

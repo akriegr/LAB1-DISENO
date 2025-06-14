@@ -13,6 +13,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/LAB")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class InventarioController {
 
     private final InventarioService inventarioService;

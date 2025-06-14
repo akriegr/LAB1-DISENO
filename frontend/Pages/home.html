@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="/frontend/CSS/home.css"></script>
+    <link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Young+Serif&display=swap" rel="stylesheet">
+
+<body>
+    <section class="nes-container with-title is-centered" id="Produtos">
+        <p class="title">Productos</p>
+        <div class="nes-table-responsive" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+            " id="tableContainer">
+            <table class="nes-table is-bordered is-centered" id="tableProdutos">
+                <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Categoria</th>
+                    <th>Editar</th>
+                    <th>Eliminar</th>
+                </tr>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div id="CrearProducto" style="
+            /* width: 60%; */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 50px;
+        ">
+                        <p class="title">Crear Producto</p>
+                        <label  for="inputNombreNuevo" style="margin-top: 25px;">Nombre</label>
+                        <textarea id="inputNombreNuevo" style="width: 30%; height: 50px;" class="nes-textarea"></textarea>
+                        <label for="inputPrecioNuevo" style="margin-top: 25px;">Precio</label>
+                        <textarea id="inputPrecioNuevo" style="width: 30%; height: 50px;" class="nes-textarea"></textarea>
+                        <label for="categoriaSelectNueva" style="margin-top: 25px;">Categoria</label>
+                        <div class="nes-select" >
+                            <select required id="categoriaSelectNueva" style="width: 30%; height: 50px;">
+                                <option value="" selected hidden>Select...</option>
+                            </select>
+                        </div>
+                        <div style="margin-top: 25px;">
+                            <button class="nes-btn">Cancel</button>
+                            <button class="nes-btn is-primary" id="confirmProductSaveBtn">Confirm</button>
+                        </div>
+                </div>
+    </section>
+    <div id="Categoria">
+        
+    </div>
+    <div id="Inventario">
+
+    </div>
+    <div id="Ventas">
+
+    </div>
+    <div id="Factura">
+
+    </div>
+    <section>
+        <dialog class="nes-dialog" id="editProductModal">
+            <form method="dialog">
+                <label for="nombre">Nombre</label>
+                <textarea id="inputNombre" class="nes-textarea"></textarea>
+                <label for="nombre">Precio</label>
+                <textarea id="inputPrecio" class="nes-textarea"></textarea>
+                <label for="categoriaSelect">Categoria</label>
+                <div class="nes-select">
+                <select required id="categoriaSelect">
+                </select>
+                </div>
+                <menu class="dialog-menu">
+                    <button class="nes-btn">Cancel</button>
+                    <button class="nes-btn is-success" id="confirmEditButton">Confirm</button>
+                </menu>
+            </form>
+        </dialog>
+    </section>
+    <section>
+        <dialog class="nes-dialog" id="successModal">
+            <form method="dialog" display="flex" style="flex-direction: column; align-items: center;">
+                <p class="title">Success</p>
+                <p id="successMessage"></p>
+                <i class="nes-icon trophy is-large"></i>
+                <menu class="dialog-menu">
+                    <button class="nes-btn is-primary">OK</button>
+                </menu>
+            </form>
+        </dialog>
+    </section>
+    <section>
+        <dialog class="nes-dialog" id="loadingModal">
+            <form method="dialog" display="flex" style="flex-direction: column; align-items: center;">
+                <p class="title">Esperando...</p>
+                <i class="nes-kirby"></i>
+            </form>
+        </dialog>
+    </section>
+    <script src="/frontend/Javascript/home.js"></script>
+</body>
+</html>

@@ -14,6 +14,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/LAB")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class CategoriaController {
 
     private final CategoriaService categoriaService;
