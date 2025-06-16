@@ -36,7 +36,7 @@
                 body: JSON.stringify(nuevoProducto)
             });
             const mensaje = await response.text();
-            await refreshTable();
+            await refreshProductTable();
             if (!response.ok) {
                 const errorData = await response.text();
                 alert('Error al crear producto'+errorData);
@@ -61,7 +61,7 @@
                 },
                 body: JSON.stringify(productoActualizado)
             });
-            await refreshTable();
+            await refreshProductTable();
             const productoNuevo = await response.json();
             return productoNuevo;
         } catch (error) {
@@ -69,11 +69,22 @@
             throw error;
         }
     }
-    async function deleteProducto(id) {
-        console.log('Eliminando producto con ID:', id);
+    async function deleteEntity(entityType,id) {
+        console.log(`Eliminando ${entityType} con ID:`, id);
         showLoadingModal();
         try{
-                const response = await fetch(`http://localhost:5050/LAB/producto/${id}`, {
+            let endpoint = '';
+            switch (entityType) {
+                case 'producto':
+                    endpoint = `http://localhost:5050/LAB/producto/${id}`;
+                    break;
+                case 'categoria':
+                    endpoint = `http://localhost:5050/LAB/categoria/${id}`;
+                    break;
+                default:
+                    throw new Error('Tipo de entidad no soportado');
+            }
+            const response = await fetch(endpoint, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
@@ -81,30 +92,109 @@
                 body: JSON.stringify(id)
             });
             const mensaje = await response.text();
-            if (!response.ok) {
+            console.log(response)
+            if (!response.status === 200) {
                 hideLoadingModal();
                 showErrorModal(mensaje);
             }else{
+                if(entityType === 'producto') {
                 hideLoadingModal();
                 showSuccessModal(mensaje);
-                refreshTable();
+                refreshProductTable();
+                }else if(entityType === 'categoria') {
+                hideLoadingModal();
+                showSuccessModal(mensaje);
+                refreshCategoryTable();
+                }
             }
-        }catch (error) {
-            console.error('Error eliminando producto:', error);
+            }catch(error) {
+            console.error(`Error eliminando ${entityType}:`, error);
+            throw error;
+            }
+    }
+    async function fillTableProducto(){
+        try{
+        const tablaProductos = document.getElementById('tableProdutos');
+        const loadingRow = document.createElement('tr');
+        loadingRow.innerHTML = `<td colspan="6" style="text-align: center;">Cargando productos...</td>`;
+        tablaProductos.appendChild(loadingRow);
+        const productos = await fetchProducts();
+                const categoriasPromises = productos.map(producto => 
+            fetchCategoriaById(producto.idCategoria)
+        );
+        const categorias = await Promise.all(categoriasPromises);
+        tablaProductos.removeChild(loadingRow);
+        productos.forEach((producto, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${producto.id}</td>
+                <td>${producto.nombre}</td>
+                <td>${producto.precio}</td>
+                <td>${categorias[index].nombre}</td>
+                <td>
+                    <button type="button" class="nes-btn is-primary" onclick="openProductEdit(${producto.id})">Editar</button>
+                    <button type="button" class="nes-btn is-success">Confirmar</button>
+                </td>
+                <td><button type="button" class="nes-btn is-error" onclick="showDeleteModal('producto', ${producto.id})">Eliminar</button></td>
+            `;
+            tablaProductos.appendChild(row);
+        });
+    }catch (error) {
+        console.error('Error:', error);
+    }
+    };
+    async function fillTableCategorias(){
+        try {
+            const tablaCategorias = document.getElementById('tableCategorias');
+            const loadingRow = document.createElement('tr');
+            loadingRow.innerHTML = `<td colspan="4" style="text-align: center;">Cargando categorías...</td>`;
+            tablaCategorias.appendChild(loadingRow);
+            const categorias = await fetchCategories();
+            tablaCategorias.removeChild(loadingRow);
+            categorias.forEach(categoria => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${categoria.id}</td>
+                    <td>${categoria.nombre}</td>
+                    <td>${categoria.descripcion}</td>
+                    <td>
+                        <button type="button" class="nes-btn is-primary" onclick="openCategoryEdit(${categoria.id})">Editar</button>
+                    </td>
+                    <td><button type="button" class="nes-btn is-error" onclick="showDeleteModal('categoria', ${categoria.id})">Eliminar</button></td>
+                `;
+                tablaCategorias.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error filling categories table:', error);
+        }
+    }
+    async function fetchCategoryById(id) {}
+    async function fetchCategories(){
+        try {
+            const response = await fetch('http://localhost:5050/LAB/categoria');
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching categories:', error);
             throw error;
         }
     }
-    async function updateTest() {
-        alert('Actualizando producto...');
-    }
-    async function refreshTable() {
+    async function refreshProductTable() {
     const tablaProductos = document.getElementById('tableProdutos');
     // Limpiar la tabla (excepto el encabezado)
     while(tablaProductos.rows.length > 1) {
         tablaProductos.deleteRow(1);
     }
+    await fillTableProducto();
+    }
+    async function refreshCategoryTable() {
+    const tabla = document.getElementById('tableCategorias');
+    // Limpiar la tabla (excepto el encabezado)
+    while(tabla.rows.length > 1) {
+        tabla.deleteRow(1);
+    }
     // Volver a llenar la tabla
-    await FillTable();
+    await fillTableCategorias();
     }
     async function fetchCategoriaById(id) {
         try {
@@ -152,38 +242,7 @@
         modal.dataset.productId = productId; // Guardar el ID del producto en el modal
         modal.showModal();
     }
-    async function FillTable(){
-        try{
-        const tablaProductos = document.getElementById('tableProdutos');
-        const loadingRow = document.createElement('tr');
-        loadingRow.innerHTML = `<td colspan="6" style="text-align: center;">Cargando productos...</td>`;
-        tablaProductos.appendChild(loadingRow);
-        const productos = await fetchProducts();
-                const categoriasPromises = productos.map(producto => 
-            fetchCategoriaById(producto.idCategoria)
-        );
-        const categorias = await Promise.all(categoriasPromises);
-        tablaProductos.removeChild(loadingRow);
-        productos.forEach((producto, index) => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${producto.id}</td>
-                <td>${producto.nombre}</td>
-                <td>${producto.precio}</td>
-                <td>${categorias[index].nombre}</td>
-                <td>
-                    <button type="button" class="nes-btn is-primary" onclick="openProductEdit(${producto.id})">Editar</button>
-                    <button type="button" class="nes-btn is-success">Confirmar</button>
-                </td>
-                <td><button type="button" class="nes-btn is-error" onclick="showDeleteModal(${producto.id})">Eliminar</button></td>
-            `;
-            tablaProductos.appendChild(row);
-        });
-    }catch (error) {
-        console.error('Error:', error);
-    }
-    };
-    async function llenarSelect(){
+    async function llenarSelectProducto(){
         try{
             const selectCategoria = document.getElementById('categoriaSelectNueva');
             const categorias = await fetchCategorias();
@@ -203,7 +262,7 @@
     successMessage.textContent = message;
     modal.showModal();
     setTimeout(() => {
-        modal.style.display = 'none';
+        modal.close();
     }, 5000);
     }
     function showLoadingModal(){
@@ -214,9 +273,10 @@
         const modal = document.getElementById('loadingModal');
         modal.close();
     }
-    function showDeleteModal(id) {
+    function showDeleteModal(entityType,id) {
         const modal = document.getElementById('deleteModal');
-        modal.dataset.productId = id;
+        modal.dataset.entityType = entityType; // 'producto' o 'categoria'
+        modal.dataset.entityId = id;
         modal.showModal();
     }
     function showErrorModal(message){
@@ -242,12 +302,15 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
     document.getElementById('confirmProductSaveBtn').addEventListener('click', async function() {
+        const nombreInput = document.getElementById('inputNombreNuevo');
+        const precioInput = document.getElementById('inputPrecioNuevo');
+        const categoriaIdInput = document.getElementById('categoriaSelectNueva');
         showLoadingModal();
-        const nombre = document.getElementById('inputNombreNuevo').value;
-        const precio = document.getElementById('inputPrecioNuevo').value;
-        const categoriaId = document.getElementById('categoriaSelectNueva').value;
         try{
-            const resultado = await createProducto(nombre, precio, categoriaId);
+            const resultado = await createProducto(nombreInput.value, precioInput.value, categoriaIdInput.value);
+            nombreInput.value = '';
+            precioInput.value = '';
+            document.getElementById('categoriaSelectNueva').selectedIndex = 0;
             hideLoadingModal();
             showSuccessModal(resultado.mensaje);
         }catch(error) {
@@ -256,15 +319,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
     document.getElementById('confirmDeleteButton').addEventListener('click', async function(){
         const modal = document.getElementById('deleteModal');
-        const productId = modal.dataset.productId; // Obtener el ID del modal
+        const entityType = modal.dataset.entityType;
+        const entityId = modal.dataset.entityId;
+        
         try {
-        modal.close();
-        await deleteProducto(productId);
-    } catch(error) {
-        hideLoadingModal();
-    }
+            modal.close();
+            await deleteEntity(entityType, entityId);
+        } catch(error) {
+            hideLoadingModal();
+        }
     });
-    await llenarSelect();
-    await FillTable();
+    llenarSelectProducto();
+    fillTableProducto();
+    fillTableCategorias();
+    console.log("categorias:", await fetchCategorias());
 
 });

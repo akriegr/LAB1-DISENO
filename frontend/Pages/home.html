@@ -11,12 +11,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Young+Serif&display=swap" rel="stylesheet">
 
 <body>
-    <section class="nes-container with-title is-centered" id="Produtos">
+    <section class="nes-container with-title is-centered" style="display: flex; justify-content: space-between;" id="Produtos">
         <p class="title">Productos</p>
-        <div class="nes-table-responsive" style="
+        <div class="nes-table-responsive left-div" style="
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    width:60%
             " id="tableContainer">
             <table class="nes-table is-bordered is-centered" id="tableProdutos">
                 <thead>
@@ -34,34 +35,72 @@
                 </tbody>
             </table>
         </div>
-        <div id="CrearProducto" style="
+        <div id="CrearProducto" class="right div" style="
             /* width: 60%; */
             display: flex;
             flex-direction: column;
             justify-content: space-around;
             align-items: center;
-            margin-top: 50px;
+            width: 40%;
         ">
                         <p class="title">Crear Producto</p>
                         <label  for="inputNombreNuevo" style="margin-top: 25px;">Nombre</label>
-                        <textarea id="inputNombreNuevo" style="width: 30%; height: 50px;" class="nes-textarea"></textarea>
+                        <input id="inputNombreNuevo" style="width: 80%; height: 50px;" type="text" class="nes-input"></input>
                         <label for="inputPrecioNuevo" style="margin-top: 25px;">Precio</label>
-                        <textarea id="inputPrecioNuevo" style="width: 30%; height: 50px;" class="nes-textarea"></textarea>
+                        <input id="inputPrecioNuevo" style="width: 80%; height: 50px;" type="number" class="nes-input"></input>
                         <label for="categoriaSelectNueva" style="margin-top: 25px;">Categoria</label>
                         <div class="nes-select" >
-                            <select required id="categoriaSelectNueva" style="width: 30%; height: 50px;">
+                            <select required id="categoriaSelectNueva" style="width: 80%; height: 50px;">
                                 <option value="" selected hidden>Select...</option>
                             </select>
                         </div>
                         <div style="margin-top: 25px;">
-                            <button class="nes-btn">Cancel</button>
                             <button class="nes-btn is-primary" id="confirmProductSaveBtn">Confirm</button>
+                            <button class="nes-btn">Cancel</button>
                         </div>
-                </div>
+        </div>
     </section>
-    <div id="Categoria">
-        
-    </div>
+    <section class="nes-container with-title is-centered" style="display: flex; justify-content: space-between;" id="Categoria">
+        <p class="title">Categoria</p>
+        <div class="nes-table-responsive left-div" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+            " id="tableContainer">
+            <table class="nes-table is-bordered is-centered" id="tableCategorias">
+                <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                    <th>Descripcion</th>
+                    <th>Editar</th>
+                    <th>Eliminar</th>
+                </tr>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div id="CrearCategoria" class="right div" style="
+            /* width: 60%; */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            width: 40%;
+        ">
+            <p class="title">Crear Categoria</p>
+            <label  for="inputNombreCat" style="margin-top: 25px;">Nombre</label>
+            <input id="inputNombreCat" style="width: 80%; height: 50px;" class="nes-input"></input>
+            <label for="inputDescripcion" style="margin-top: 25px;">Descripcion</label>
+            <textarea id="inputDescription" style="width: 80%; height: 125px;" class="nes-textarea"></textarea>
+            <div style="margin-top: 25px;">
+                <button class="nes-btn is-primary" id="confirmProductSaveBtn">Confirm</button>
+                <button class="nes-btn">Cancel</button>
+            </div>
+        </div>
+    </section>
     <div id="Inventario">
 
     </div>
@@ -75,9 +114,9 @@
         <dialog class="nes-dialog" id="editProductModal">
             <form method="dialog">
                 <label for="nombre">Nombre</label>
-                <textarea id="inputNombre" class="nes-textarea"></textarea>
+                <input type="text" id="inputNombre" class="nes-input"></input>
                 <label for="nombre">Precio</label>
-                <textarea id="inputPrecio" class="nes-textarea"></textarea>
+                <input type="number"id="inputPrecio" class="nes-input" ></input>
                 <label for="categoriaSelect">Categoria</label>
                 <div class="nes-select">
                 <select required id="categoriaSelect">
