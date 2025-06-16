@@ -218,6 +218,31 @@
             throw error;
         }
     }
+    async function createCategoria(nombre, descripcion) {
+        try{
+            const nuevaCategoria = {
+                nombre: nombre,
+                descripcion: descripcion,
+            };
+            const response = await fetch('http://localhost:5050/LAB/categoria', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(nuevaCategoria)
+            });
+            const mensaje = await response.text();
+            await refreshCategoryTable();
+            if (!response.ok) {
+                const errorData = await response.text();
+                alert('Error al crear categoria'+errorData);
+            }
+            return { mensaje: mensaje };
+        }catch(error) {
+            console.error('Error creating categoria:', error);
+            throw error;
+        }
+    }
     async function openProductEdit(productId) {
         const modal = document.getElementById('editProductModal');
         const inputNombre = document.getElementById('inputNombre');
@@ -245,6 +270,9 @@
     async function llenarSelectProducto(){
         try{
             const selectCategoria = document.getElementById('categoriaSelectNueva');
+            if (selectCategoria.options.length > 0) {
+            selectCategoria.innerHTML = '';
+        }
             const categorias = await fetchCategorias();
             categorias.forEach(categoria => {
                 const option = document.createElement('option');
@@ -327,6 +355,21 @@ document.addEventListener('DOMContentLoaded', async function() {
             await deleteEntity(entityType, entityId);
         } catch(error) {
             hideLoadingModal();
+        }
+    });
+    document.getElementById('confirmCategoriaSaveBtn').addEventListener('click', async function() {
+        const inputNombreCategoria = document.getElementById('inputNombreCategoria');
+        const inputDescripcionCategoria = document.getElementById('inputDescripcion');
+        showLoadingModal();
+        try{
+            const resultado = await createCategoria(inputNombreCategoria.value, inputDescripcionCategoria.value);
+            inputNombreCategoria.value = '';
+            inputDescripcionCategoria.value = '';
+            hideLoadingModal();
+            llenarSelectProducto();
+            showSuccessModal(resultado.mensaje);
+        }catch(error){
+            console.error('Error creando categoria:', error);
         }
     });
     llenarSelectProducto();
