@@ -110,6 +110,28 @@
             </form>
         </dialog>
     </section>
+    <section>
+        <dialog class="nes-dialog" id="deleteModal">
+            <form method="dialog" display="flex" style="flex-direction: column; align-items: center;">
+                <i class="nes-bulbasaur"></i>
+                <p class="title">Esta seguro de eliminar?</p>
+                <menu class="dialog-menu">
+                    <button class="nes-btn is-success" id="confirmDeleteButton">Confirm</button>
+                    <button class="nes-btn is-error">Cancel</button>
+                </menu>
+            </form>
+        </dialog>
+    </section>
+    <section>
+        <dialog class="nes-dialog" id="errorModal">
+            <form method="dialog" display="flex" style="flex-direction: column; align-items: center;">
+                <i class="nes-icon close is-large"></i>
+                <p class="title">Error</p>
+                <p id="errorMessage"></p>
+                
+            </form>
+        </dialog>
+    </section>
     <script src="/frontend/Javascript/home.js"></script>
 </body>
 </html>

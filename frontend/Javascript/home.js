@@ -69,6 +69,27 @@
             throw error;
         }
     }
+    async function deleteProducto(id) {
+        console.log('Eliminando producto con ID:', id);
+        try{
+                const response = await fetch(`http://localhost:5050/LAB/producto/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(id)
+            });
+            const mensaje = await response.text();
+            if (!response.ok) {
+                showErrorModal(mensaje);
+            }
+            await refreshTable();
+            return { mensaje: mensaje };
+        }catch (error) {
+            console.error('Error deleting producto:', error);
+            throw error;
+        }
+    }
     async function updateTest() {
         alert('Actualizando producto...');
     }
@@ -150,7 +171,7 @@
                     <button type="button" class="nes-btn is-primary" onclick="openProductEdit(${producto.id})">Editar</button>
                     <button type="button" class="nes-btn is-success">Confirmar</button>
                 </td>
-                <td><button type="button" class="nes-btn is-error">Eliminar</button></td>
+                <td><button type="button" class="nes-btn is-error" onclick="showDeleteModal(${producto.id})">Eliminar</button></td>
             `;
             tablaProductos.appendChild(row);
         });
@@ -167,13 +188,11 @@
                 option.value = categoria.id;
                 option.textContent = categoria.nombre;
                 selectCategoria.appendChild(option);
-                console.log(option);
             });
         }catch (error) {
             console.error('Error filling select:', error);
         }
     }
-    // Función para mostrar el modal de éxito
     function showSuccessModal(message) {
     const modal = document.getElementById('successModal');
     const successMessage = document.getElementById('successMessage');   
@@ -191,11 +210,23 @@
         const modal = document.getElementById('loadingModal');
         modal.close();
     }
+    function showDeleteModal(id) {
+        const modal = document.getElementById('deleteModal');
+        modal.dataset.productId = id;
+        modal.showModal();
+    }
+    function showErrorModal(message){
+        const modal = document.getElementById('errorModal');
+        const mensaje = document.getElementById('errorMessage');
+        mensaje.textContent = message;
+        modal.showModal();
+    }
+
 
 
     //**************************//
 document.addEventListener('DOMContentLoaded', async function() {
-        document.getElementById('confirmEditButton').addEventListener('click', async function() {
+    document.getElementById('confirmEditButton').addEventListener('click', async function() {
         const nombre = document.getElementById('inputNombre').value;
         const precio = document.getElementById('inputPrecio').value;
         const categoriaId = document.getElementById('categoriaSelect').value;
@@ -218,7 +249,22 @@ document.addEventListener('DOMContentLoaded', async function() {
         }catch(error) {
             console.error('Error creando product:', error);
         }
-    }); 
+    });
+    document.getElementById('confirmDeleteButton').addEventListener('click', async function(){
+        const modal = document.getElementById('deleteModal');
+        const productId = modal.dataset.productId; // Obtener el ID del modal
+        try {
+        modal.close();
+        showLoadingModal();
+        const resultado = await deleteProducto(productId);
+        hideLoadingModal();
+        showSuccessModal(resultado.mensaje);
+    } catch(error) {
+        console.error('Error eliminando producto:', error);
+        hideLoadingModal();
+        alert('Error al eliminar el producto');
+    }
+    });
     await llenarSelect();
     await FillTable();
 
