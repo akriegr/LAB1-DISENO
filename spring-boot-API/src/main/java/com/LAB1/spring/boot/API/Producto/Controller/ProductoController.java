@@ -74,7 +74,7 @@ public class ProductoController {
     public ResponseEntity<?> deleteProducto(@PathVariable int id) {
         try{
             productoService.deleteProducto(id);
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body("Prodcuto eliminado con exito");
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("Producto eliminado con exito");
         }catch(Exception e){
             System.err.println("Error al eliminar el producto: "+e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar el producto");

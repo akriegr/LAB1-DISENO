@@ -71,6 +71,7 @@
     }
     async function deleteProducto(id) {
         console.log('Eliminando producto con ID:', id);
+        showLoadingModal();
         try{
                 const response = await fetch(`http://localhost:5050/LAB/producto/${id}`, {
                 method: 'DELETE',
@@ -81,12 +82,15 @@
             });
             const mensaje = await response.text();
             if (!response.ok) {
+                hideLoadingModal();
                 showErrorModal(mensaje);
+            }else{
+                hideLoadingModal();
+                showSuccessModal(mensaje);
+                refreshTable();
             }
-            await refreshTable();
-            return { mensaje: mensaje };
         }catch (error) {
-            console.error('Error deleting producto:', error);
+            console.error('Error eliminando producto:', error);
             throw error;
         }
     }
@@ -255,14 +259,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         const productId = modal.dataset.productId; // Obtener el ID del modal
         try {
         modal.close();
-        showLoadingModal();
-        const resultado = await deleteProducto(productId);
-        hideLoadingModal();
-        showSuccessModal(resultado.mensaje);
+        await deleteProducto(productId);
     } catch(error) {
-        console.error('Error eliminando producto:', error);
         hideLoadingModal();
-        alert('Error al eliminar el producto');
     }
     });
     await llenarSelect();
