@@ -51,7 +51,6 @@
                         <label for="categoriaSelectNueva" style="margin-top: 25px;">Categoria</label>
                         <div class="nes-select" >
                             <select required id="categoriaSelectNueva" style="width: 80%; height: 50px;">
-                                <option value="" selected hidden>Select...</option>
                             </select>
                         </div>
                         <div style="margin-top: 25px;">
@@ -124,7 +123,22 @@
                 </div>
                 <menu class="dialog-menu">
                     <button class="nes-btn">Cancel</button>
-                    <button class="nes-btn is-success" id="confirmEditButton">Confirm</button>
+                    <button class="nes-btn is-success" id="confirmEditButtonProduct">Confirm</button>
+                </menu>
+            </form>
+        </dialog>
+    </section>
+    <section>
+        <dialog class="nes-dialog" id="editCategoryModal">
+            <form method="dialog">
+                <label for="inputNombreCategoriaUpd">Nombre</label>
+                <input type="text" id="inputNombreCategoriaUpd" class="nes-input"></input>
+                <label for="inputDescripCategoriaUpd">Precio</label>
+                <textarea type="number" id="inputDescripCategoriaUpd" class="nes-textarea" ></textarea>
+                <label for="categoriaSelect">Categoria</label>
+                <menu class="dialog-menu">
+                    <button class="nes-btn">Cancel</button>
+                    <button class="nes-btn is-success" id="confirmEditButtonCategory">Confirm</button>
                 </menu>
             </form>
         </dialog>

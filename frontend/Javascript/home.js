@@ -10,6 +10,17 @@
             throw error;
         }
     }
+    async function fecthCategoriaById(id){
+        try {
+            const response = await fetch(`http://localhost:5050/LAB/categoria/${id}`);
+            const data = await response.json();
+            const categoria = data;
+            return categoria;
+        } catch (error) {
+            console.error('Error fetching categoria:', error);
+            throw error;
+        }
+    }
     async function fetchProducts() {
         try{
             const response = await fetch('http://localhost:5050/LAB/producto');
@@ -37,7 +48,7 @@
             });
             const mensaje = await response.text();
             await refreshProductTable();
-            if (!response.ok) {
+            if (response.status === 500) {
                 const errorData = await response.text();
                 alert('Error al crear producto'+errorData);
             }
@@ -49,6 +60,7 @@
     }
     async function updateProducto(id, nombre, precio, idCategoria) {
         try {
+            showLoadingModal();
             const productoActualizado = {
                 nombre: nombre,
                 precio: Number(precio),
@@ -63,9 +75,45 @@
             });
             await refreshProductTable();
             const productoNuevo = await response.json();
+            if (response.status === 500) {
+                hideLoadingModal();
+                showErrorModal('Error al actualizar categoría');
+            }else{
+                hideLoadingModal();
+                showSuccessModal('Categoría actualizada');
+            }
             return productoNuevo;
         } catch (error) {
             console.error('Error updating producto:', error);
+            throw error;
+        }
+    }
+    async function updateCategoria(id, nombre, descripcion) {
+        try{
+            showLoadingModal();
+            const categoriaActualizada = {
+                nombre: nombre,
+                descripcion: descripcion
+            };
+            const response = await fetch(`http://localhost:5050/LAB/categoria/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(categoriaActualizada)
+            });
+            await refreshCategoryTable();
+            const categoriaNueva = await response.json();
+            if (response.status === 500) {
+                hideLoadingModal();
+                showErrorModal('Error al actualizar categoría');
+            }else{
+                hideLoadingModal();
+                showSuccessModal('Categoría actualizada');
+            }
+            return categoriaNueva;
+        }catch (error) {
+            console.error('Error updating categoria:', error);
             throw error;
         }
     }
@@ -93,7 +141,7 @@
             });
             const mensaje = await response.text();
             console.log(response)
-            if (!response.status === 200) {
+            if (response.status === 500) {
                 hideLoadingModal();
                 showErrorModal(mensaje);
             }else{
@@ -103,8 +151,9 @@
                 refreshProductTable();
                 }else if(entityType === 'categoria') {
                 hideLoadingModal();
-                showSuccessModal(mensaje);
+                llenarSelectProducto();
                 refreshCategoryTable();
+                showSuccessModal(mensaje);
                 }
             }
             }catch(error) {
@@ -267,6 +316,16 @@
         modal.dataset.productId = productId; // Guardar el ID del producto en el modal
         modal.showModal();
     }
+    async function openCategoryEdit(categoriaId) {
+        const modal = document.getElementById('editCategoryModal');
+        const inputNombre = document.getElementById('inputNombreCategoriaUpd');
+        const inputDescripcion = document.getElementById('inputDescripCategoriaUpd');
+        const categoria = await fecthCategoriaById(categoriaId);
+        inputNombre.value = categoria.nombre;
+        inputDescripcion.value = categoria.descripcion;
+        modal.dataset.categoriaId = categoriaId; // Guardar el ID de la categoría en el modal
+        modal.showModal();
+    }
     async function llenarSelectProducto(){
         try{
             const selectCategoria = document.getElementById('categoriaSelectNueva');
@@ -274,6 +333,10 @@
             selectCategoria.innerHTML = '';
         }
             const categorias = await fetchCategorias();
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Seleccione una categoría';
+            selectCategoria.appendChild(defaultOption);
             categorias.forEach(categoria => {
                 const option = document.createElement('option');
                 option.value = categoria.id;
@@ -318,13 +381,23 @@
 
     //**************************//
 document.addEventListener('DOMContentLoaded', async function() {
-    document.getElementById('confirmEditButton').addEventListener('click', async function() {
+    document.getElementById('confirmEditButtonProduct').addEventListener('click', async function() {
         const nombre = document.getElementById('inputNombre').value;
         const precio = document.getElementById('inputPrecio').value;
         const categoriaId = document.getElementById('categoriaSelect').value;
         const productId = document.getElementById('editProductModal').dataset.productId;
         try{
             await updateProducto(productId, nombre, precio, categoriaId);
+        }catch(error) {
+            console.error('Error updating product:', error);
+        }
+    });
+    document.getElementById('confirmEditButtonCategory').addEventListener('click', async function() {
+        const nombre = document.getElementById('inputNombreCategoriaUpd').value;
+        const descripcion = document.getElementById('inputDescripCategoriaUpd').value;
+        const categoriaId = document.getElementById('editCategoryModal').dataset.categoriaId;
+        try{
+            await updateCategoria(categoriaId, nombre, descripcion);
         }catch(error) {
             console.error('Error updating product:', error);
         }
@@ -375,6 +448,4 @@ document.addEventListener('DOMContentLoaded', async function() {
     llenarSelectProducto();
     fillTableProducto();
     fillTableCategorias();
-    console.log("categorias:", await fetchCategorias());
-
 });
