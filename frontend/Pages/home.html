@@ -145,20 +145,20 @@
         </div>
     </section>
     <section class="nes-container with-title is-centered" style="display: flex; justify-content: space-between;" id="Ventas">
-        <p class="title">Ventas</p>
+        <p class="title">Facturas</p>
         <div class="nes-table-responsive left-div" style="
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     width:50%"
             id="tableContainer">
-            <table class="nes-table is-bordered is-centered" id="tableReportes">
+            <table class="nes-table is-bordered is-centered" id="tableFacturas">
                 <thead>
                 <tr>
                     <th>Id</th>
-                    <th>Nombre</th>
-                    <th>Precio</th>
-                    <th>Categoria</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Ver</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -196,7 +196,6 @@
                         <tr>
                         <th>Producto</th>
                         <th>Cantidad</th>
-                        <th>Total</th>
                         <th>Acciones</th>
                         </tr>
                 </table>
@@ -294,6 +293,33 @@
                 <p id="errorMessage"></p>
                 <menu class="dialog-menu">
                     <button class="nes-btn is-primary">OK</button>
+                </menu>
+            </form>
+        </dialog>
+    </section>
+    <section>
+        <dialog class="nes-dialog" id="verFacturaModal">
+            <form method="dialog" display="flex" style="flex-direction: column; align-items: center;">
+                <i class="nes-bulbasaur"></i>
+                <div class="nes-table-responsive " style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-around;">
+                    <table id="tableVentaFacturaVer" class="nes-table is-bordered is-centered">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableFacturaBody">
+                        </tbody>
+                    </table>
+                </div>
+                <p id="totalFacturaVista"></p>
+                <menu class="dialog-menu">
+                    <button class="nes-btn is-error">Cerrar</button>
                 </menu>
             </form>
         </dialog>

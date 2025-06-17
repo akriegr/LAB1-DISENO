@@ -21,6 +21,17 @@
             throw error;
         }
     }
+    async function fetchVentasbyFactura(idFactura) {
+        try {
+            const response = await fetch(`http://localhost:5050/LAB/venta/producto/${idFactura}`);
+            const data = await response.json();
+            const ventas = data;
+            return ventas;
+        } catch (error) {
+            console.error('Error fetching ventas by factura:', error);
+            throw error;
+        }
+    }
     async function fetchInventarioById(idProducto) {
         try {
             const response = await fetch(`http://localhost:5050/LAB/inventario/${idProducto}`);
@@ -32,6 +43,17 @@
             throw error;
         }
     } 
+    async function fetchFacturaById(idFactura) {
+        try {
+            const response = await fetch(`http://localhost:5050/LAB/factura/${idFactura}`);
+            const data = await response.json();
+            const factura = data;
+            return factura;
+        } catch (error) {
+            console.error('Error fetching factura:', error);
+            throw error;
+        }
+    }
     async function fetchProducts() {
         try{
             const response = await fetch('http://localhost:5050/LAB/producto');
@@ -40,6 +62,17 @@
             return listaProductos;
         }catch (error) {
             console.error('Error fetching products:', error);
+            throw error;
+        }
+    }
+    async function fetchFacturas(){
+        try {
+            const response = await fetch('http://localhost:5050/LAB/factura');
+            const data = await response.json();
+            const listaFacturas = data;
+            return listaFacturas;
+        } catch (error) {
+            console.error('Error fetching facturas:', error);
             throw error;
         }
     }
@@ -328,6 +361,37 @@
             console.error('Error filling inventory table:', error);
         }
     }
+    async function fillTableFacturas(){
+        try{
+            const tablaFacturas = document.getElementById('tableFacturas').querySelector('tbody');
+            const loadingRow = document.createElement('tr');
+            loadingRow.innerHTML = `<td colspan="3" style="text-align: center;">Cargando facturas...</td>`;
+            tablaFacturas.appendChild(loadingRow);
+            const facturas = await fetchFacturas();
+            tablaFacturas.innerHTML = '';
+            facturas.forEach(factura => {
+                const row = document.createElement('tr');
+                // Format fecha as yy/mm/dd
+                let fechaObj = new Date(factura.fecha);
+                let yy = String(fechaObj.getFullYear()).slice(-2);
+                let mm = String(fechaObj.getMonth() + 1).padStart(2, '0');
+                let dd = String(fechaObj.getDate()).padStart(2, '0');
+                let fechaFormateada = `${yy}/${mm}/${dd}`;
+
+                row.innerHTML = `
+                    <td>${factura.id}</td>
+                    <td>${fechaFormateada}</td>
+                    <td>${factura.monto}</td>
+                    <td>
+                        <button type="button" class="nes-btn is-primary" onclick="verFacturaModal(${factura.id})">Ver</button>
+                    </td>                           
+                        `;      
+                tablaFacturas.appendChild(row);
+            });
+        }catch (error) {
+            console.error('Error filling facturas table:', error);
+        }
+    }
     async function fetchCategories(){
         try {
             const response = await fetch('http://localhost:5050/LAB/categoria');
@@ -359,6 +423,13 @@
         tabla.deleteRow(1);
     }
     await fillTableInventario();
+    }
+    async function refreshFacturaTable() {
+        const tabla = document.getElementById('tableFacturas'); 
+        while(tabla.rows.length > 1) {
+            tabla.deleteRow(1);
+        }
+        await fillTableFacturas();
     }
     async function fetchCategoriaById(id) {
         try {
@@ -541,25 +612,40 @@
                     productosVenta.push({ productoId, nombreProducto, cantidad, total });
                     ventas.push({
                         cantidad: cantidad,
-                        idProducto: parseInt(productoId),
-                        idFactura: 5
+                        idProducto: parseInt(productoId)
                     });
                 });
                 var monto = totalVenta;
                 var fecha =  new Date().toISOString().split('T')[0];
-                idFactura = await createFactura(monto,fecha);
+                const idFactura = await createFactura(monto,fecha);
                 console.log(ventas);
                 console.log("idFactura: "+idFactura);
-                if (idFactura === null) {
+                if(!idFactura){
                     hideLoadingModal();
-                    showErrorModal('Error al crear la factura');
+                    showErrorModal('Error al crear factura');
                     return;
-                }else{
-                    ventas.forEach(async venta => {
-                        console.log("VENTA: ", JSON.stringify(venta));
-                        await createVenta(venta);
-                    });
-                    showSuccessModal('Venta completada con éxito');
+                }
+                const ventasPromesas = ventas.map(ventaData => {
+                    const ventaCompleta = {
+                        ...ventaData,
+                        idFactura: idFactura
+                    };
+                    return createVenta(ventaCompleta);
+                });
+                const resultadosVentas = await Promise.all(ventasPromesas);
+                const ventasFallidas = resultadosVentas.filter(res => res === '1' || res === '2');
+                    if (ventasFallidas.length > 0) {
+                    
+                    hideLoadingModal();
+                    showErrorModal(ventasFallidas.includes('2') ? 
+                        'No hay suficiente inventario para algunos productos' : 
+                        'Error al registrar algunas ventas');
+                    return;
+                    }
+                showSuccessModal('Venta completada con éxito');
+                refreshFacturaTable();
+                while (table.rows.length > 1) {
+                    table.deleteRow(1);
                 }
                 hideLoadingModal();
                 return productosVenta;
@@ -682,6 +768,32 @@
         productoSelect.selectedIndex = 0;
         cantidadInput.value = ''; 
     }
+    async function verFacturaModal(id){
+        try{
+            const modal = document.getElementById('verFacturaModal');
+            const tbody = document.getElementById('tableVentaFacturaVer').querySelector('tbody');
+            const total = document.getElementById('totalFacturaVista');
+            tbody.innerHTML = '';
+            total.textContent = '';
+            var ventas = await fetchVentasbyFactura(id);
+            var factura = await fetchFacturaById(id);
+            console.log(ventas);
+            ventas.forEach(async venta => {
+                const row = document.createElement('tr');
+                const producto = await fecthProductById(venta.idProducto);
+                row.innerHTML = `
+                    <td>${producto.nombre}</td>
+                    <td>${venta.cantidad}</td>
+                    <td>₡${producto.precio}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            total.textContent = `Total ₡${factura.monto}`;
+            modal.showModal();
+        }catch(error) {
+            console.error('Error fetching ventas by factura:', error);
+        }
+    }
     //**************************//
 document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('confirmEditButtonProduct').addEventListener('click', async function() {
@@ -798,5 +910,5 @@ document.addEventListener('DOMContentLoaded', async function() {
     fillTableProducto();
     fillTableCategorias();
     fillTableInventario();
-
+    fillTableFacturas();
 });
