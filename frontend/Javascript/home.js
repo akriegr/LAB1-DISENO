@@ -21,6 +21,17 @@
             throw error;
         }
     }
+    async function fetchInventarioById(idProducto) {
+        try {
+            const response = await fetch(`http://localhost:5050/LAB/inventario/${idProducto}`);
+            const data = await response.json();
+            const inventario = data;
+            return inventario;
+        } catch (error) {
+            console.error('Error fetching inventario:', error);
+            throw error;
+        }
+    } 
     async function fetchProducts() {
         try{
             const response = await fetch('http://localhost:5050/LAB/producto');
@@ -47,6 +58,7 @@
                 body: JSON.stringify(nuevoProducto)
             });
             const mensaje = await response.text();
+            llenarSelectInventario();
             await refreshProductTable();
             if (response.status === 500) {
                 const errorData = await response.text();
@@ -80,40 +92,11 @@
                 showErrorModal('Error al actualizar categoría');
             }else{
                 hideLoadingModal();
-                showSuccessModal('Categoría actualizada');
+                showSuccessModal('Producto actualizado');
             }
             return productoNuevo;
         } catch (error) {
             console.error('Error updating producto:', error);
-            throw error;
-        }
-    }
-    async function updateCategoria(id, nombre, descripcion) {
-        try{
-            showLoadingModal();
-            const categoriaActualizada = {
-                nombre: nombre,
-                descripcion: descripcion
-            };
-            const response = await fetch(`http://localhost:5050/LAB/categoria/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(categoriaActualizada)
-            });
-            await refreshCategoryTable();
-            const categoriaNueva = await response.json();
-            if (response.status === 500) {
-                hideLoadingModal();
-                showErrorModal('Error al actualizar categoría');
-            }else{
-                hideLoadingModal();
-                showSuccessModal('Categoría actualizada');
-            }
-            return categoriaNueva;
-        }catch (error) {
-            console.error('Error updating categoria:', error);
             throw error;
         }
     }
@@ -129,6 +112,9 @@
                 case 'categoria':
                     endpoint = `http://localhost:5050/LAB/categoria/${id}`;
                     break;
+                case 'inventario':
+                    endpoint = `http://localhost:5050/LAB/inventario/${id}`;
+                    break;
                 default:
                     throw new Error('Tipo de entidad no soportado');
             }
@@ -140,20 +126,30 @@
                 body: JSON.stringify(id)
             });
             const mensaje = await response.text();
-            console.log(response)
             if (response.status === 500) {
                 hideLoadingModal();
                 showErrorModal(mensaje);
             }else{
-                if(entityType === 'producto') {
-                hideLoadingModal();
-                showSuccessModal(mensaje);
-                refreshProductTable();
-                }else if(entityType === 'categoria') {
-                hideLoadingModal();
-                llenarSelectProducto();
-                refreshCategoryTable();
-                showSuccessModal(mensaje);
+                switch (entityType) {
+                    case 'producto':
+                        hideLoadingModal();
+                        showSuccessModal(mensaje);
+                        llenarSelectInventario();
+                        refreshProductTable();
+                        break;
+                    case 'categoria':
+                        hideLoadingModal();
+                        llenarSelectProducto();
+                        refreshCategoryTable();
+                        showSuccessModal(mensaje);
+                        break;
+                    case 'inventario':
+                        hideLoadingModal();
+                        showSuccessModal(mensaje);
+                        refreshInventoryTable();
+                        break;
+                    default:
+                        throw new Error('Tipo de entidad no soportado');
                 }
             }
             }catch(error) {
@@ -168,9 +164,8 @@
         loadingRow.innerHTML = `<td colspan="6" style="text-align: center;">Cargando productos...</td>`;
         tablaProductos.appendChild(loadingRow);
         const productos = await fetchProducts();
-                const categoriasPromises = productos.map(producto => 
-            fetchCategoriaById(producto.idCategoria)
-        );
+        const categoriasPromises = productos.map(producto => 
+        fetchCategoriaById(producto.idCategoria));
         const categorias = await Promise.all(categoriasPromises);
         tablaProductos.removeChild(loadingRow);
         productos.forEach((producto, index) => {
@@ -182,7 +177,6 @@
                 <td>${categorias[index].nombre}</td>
                 <td>
                     <button type="button" class="nes-btn is-primary" onclick="openProductEdit(${producto.id})">Editar</button>
-                    <button type="button" class="nes-btn is-success">Confirmar</button>
                 </td>
                 <td><button type="button" class="nes-btn is-error" onclick="showDeleteModal('producto', ${producto.id})">Eliminar</button></td>
             `;
@@ -217,7 +211,37 @@
             console.error('Error filling categories table:', error);
         }
     }
-    async function fetchCategoryById(id) {}
+    async function fillTableInventario(){
+        try {
+            const tablaInventario = document.getElementById('tableInventario');
+            const loadingRow = document.createElement('tr');
+            loadingRow.innerHTML = `<td colspan="4" style="text-align: center;">Cargando inventario...</td>`;
+            tablaInventario.appendChild(loadingRow);
+            const inventario = await fetchInvenario();
+            const productosPromises = inventario.map(item =>
+                fecthProductById(item.idProducto));
+            const productos = await Promise.all(productosPromises);
+            tablaInventario.removeChild(loadingRow);
+            inventario.forEach((input,index) => {
+                const row = document.createElement('tr');
+                console.log(input.idProducto);
+                console.log(input.id);
+                row.innerHTML = `
+                    <td>${productos[index].nombre}</td>
+                    <td>${input.cantidad}</td>
+                    <td>
+                    <button type="button" class="nes-btn is-primary" onclick="openInventoryEdit(${input.id}, ${input.idProducto})">Editar</button>
+                    </td>
+                    <td>
+                        <button type="button" class="nes-btn is-error" onclick="showDeleteModal('inventario', ${input.id})">Eliminar</button>
+                    </td>
+                    `;
+                tablaInventario.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error filling inventory table:', error);
+        }
+    }
     async function fetchCategories(){
         try {
             const response = await fetch('http://localhost:5050/LAB/categoria');
@@ -238,12 +262,17 @@
     }
     async function refreshCategoryTable() {
     const tabla = document.getElementById('tableCategorias');
-    // Limpiar la tabla (excepto el encabezado)
     while(tabla.rows.length > 1) {
         tabla.deleteRow(1);
     }
-    // Volver a llenar la tabla
     await fillTableCategorias();
+    }
+    async function refreshInventoryTable() {
+    const tabla = document.getElementById('tableInventario');
+    while(tabla.rows.length > 1) {
+        tabla.deleteRow(1);
+    }
+    await fillTableInventario();
     }
     async function fetchCategoriaById(id) {
         try {
@@ -292,6 +321,73 @@
             throw error;
         }
     }
+    async function updateCategoria(id, nombre, descripcion) {
+        try{
+            showLoadingModal();
+            const categoriaActualizada = {
+                nombre: nombre,
+                descripcion: descripcion
+            };
+            const response = await fetch(`http://localhost:5050/LAB/categoria/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(categoriaActualizada)
+            });
+            await refreshCategoryTable();
+            const categoriaNueva = await response.json();
+            if (response.status === 500) {
+                hideLoadingModal();
+                showErrorModal('Error al actualizar categoría');
+            }else{
+                hideLoadingModal();
+                showSuccessModal('Categoría actualizada');
+            }
+            return categoriaNueva;
+        }catch (error) {
+            console.error('Error updating categoria:', error);
+            throw error;
+        }
+    }
+    async function updateInventario(idInventario,cantidad) {
+        try {
+            showLoadingModal();
+            const inventarioActualizado = {
+                cantidad: Number(cantidad),
+            };
+            const response = await fetch(`http://localhost:5050/LAB/inventario/${idInventario}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(inventarioActualizado)
+            });
+            await refreshInventoryTable();
+            const inventarioNuevo = await response.json();
+            if (response.status === 500) {
+                hideLoadingModal();
+                showErrorModal('Error al actualizar inventario');
+            }else{
+                hideLoadingModal();
+                showSuccessModal('Inventario actualizado');
+            }
+            return inventarioNuevo;
+        } catch (error) {
+            console.error('Error updating inventario:', error);
+            throw error;
+        }
+    }
+    async function fetchInvenario(){
+        try {
+            const response = await fetch('http://localhost:5050/LAB/inventario');
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching inventario:', error);
+            throw error;
+        }
+    }
     async function openProductEdit(productId) {
         const modal = document.getElementById('editProductModal');
         const inputNombre = document.getElementById('inputNombre');
@@ -320,10 +416,21 @@
         const modal = document.getElementById('editCategoryModal');
         const inputNombre = document.getElementById('inputNombreCategoriaUpd');
         const inputDescripcion = document.getElementById('inputDescripCategoriaUpd');
-        const categoria = await fecthCategoriaById(categoriaId);
+        const categoria = await fetchCategoriaById(categoriaId);
         inputNombre.value = categoria.nombre;
         inputDescripcion.value = categoria.descripcion;
-        modal.dataset.categoriaId = categoriaId; // Guardar el ID de la categoría en el modal
+        modal.dataset.categoriaId = categoriaId;
+        modal.showModal();
+    }
+    async function openInventoryEdit(inventarioId,idProducto) {
+        const modal = document.getElementById('editInventoryModal');
+        const productoInventario = document.getElementById('inputProductoInvent');
+        const cantidadInput = document.getElementById('inputCantidadInventUpdate');
+        const inventario = await fetchInventarioById(idProducto);
+        const producto = await fecthProductById(inventario.idProducto);
+        productoInventario.value = producto.nombre;
+        cantidadInput.value = inventario.cantidad;
+        modal.dataset.inventarioId = inventarioId; 
         modal.showModal();
     }
     async function llenarSelectProducto(){
@@ -342,6 +449,27 @@
                 option.value = categoria.id;
                 option.textContent = categoria.nombre;
                 selectCategoria.appendChild(option);
+            });
+        }catch (error) {
+            console.error('Error filling select:', error);
+        }
+    }
+    async function llenarSelectInventario(){
+        try{
+            const selectProducto = document.getElementById('productoSelectInventarioNuevo');
+            if (selectProducto.options.length > 0) {
+                selectProducto.innerHTML = '';
+            }
+            const productos = await fetchProducts();
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Seleccione un producto';
+            selectProducto.appendChild(defaultOption);
+            productos.forEach(producto => {
+                const option = document.createElement('option');
+                option.value = producto.id;
+                option.textContent = producto.nombre;
+                selectProducto.appendChild(option);
             });
         }catch (error) {
             console.error('Error filling select:', error);
@@ -376,9 +504,6 @@
         mensaje.textContent = message;
         modal.showModal();
     }
-
-
-
     //**************************//
 document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('confirmEditButtonProduct').addEventListener('click', async function() {
@@ -401,6 +526,16 @@ document.addEventListener('DOMContentLoaded', async function() {
         }catch(error) {
             console.error('Error updating product:', error);
         }
+    });
+    document.getElementById('confirmEditButtonInventory').addEventListener('click', async function() {
+        const cantidad = document.getElementById('inputCantidadInventUpdate').value;
+        const inventarioId = document.getElementById('editInventoryModal').dataset.inventarioId;
+        try{
+            await updateInventario(inventarioId,cantidad);
+        }catch(error) {
+            console.error('Error updating inventario:', error);
+        }
+
     });
     document.getElementById('confirmProductSaveBtn').addEventListener('click', async function() {
         const nombreInput = document.getElementById('inputNombreNuevo');
@@ -446,6 +581,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
     llenarSelectProducto();
+    llenarSelectInventario();
     fillTableProducto();
     fillTableCategorias();
+    fillTableInventario();
 });

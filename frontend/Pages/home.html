@@ -36,7 +36,6 @@
             </table>
         </div>
         <div id="CrearProducto" class="right div" style="
-            /* width: 60%; */
             display: flex;
             flex-direction: column;
             justify-content: space-around;
@@ -100,9 +99,50 @@
             </div>
         </div>
     </section>
-    <div id="Inventario">
-
-    </div>
+    <section class="nes-container with-title is-centered" style="display: flex; justify-content: space-between;" id="Inventario">
+        <p class="title">Inventario</p>
+        <div class="left-div" > 
+            <div class="nes-table-responsive" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width:100%"
+                id="tableContainer">
+                <table class="nes-table is-bordered is-centered" id="tableInventario">
+                    <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Editar</th>
+                        <th>Eliminar</th>
+                    </tr>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="CrearInventario" class="right div" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            width: 40%;
+        ">
+            <p class="title">Crear Inventario</p>
+                <label for="productoSelectInventarioNuevo" style="margin-top: 25px;">Producto</label>
+                <div class="nes-select" >
+                    <select required id="productoSelectInventarioNuevo" style="width: 80%; height: 50px;">
+                    </select>
+                </div>
+                <label for="inputCantidadNuevo" style="margin-top: 25px;">Cantidad</label>
+                <input id="inputCantidadNuevo" style="width: 80%; height: 50px; margin-top: 25px;" type="number" class="nes-input"></input>
+            <div style="margin-top: 25px;">
+                <button class="nes-btn is-primary" id="confirmIventarioSaveBtn">Confirm</button>
+                <button class="nes-btn">Cancel</button>
+            </div>
+    </section>
     <div id="Ventas">
 
     </div>
@@ -139,6 +179,20 @@
                 <menu class="dialog-menu">
                     <button class="nes-btn">Cancel</button>
                     <button class="nes-btn is-success" id="confirmEditButtonCategory">Confirm</button>
+                </menu>
+            </form>
+        </dialog>
+    </section>
+    <section>
+        <dialog class="nes-dialog" id="editInventoryModal">
+            <form method="dialog">
+                <label for="inputProductoInvent" style="margin-top: 25px;">Produto</label>
+                <input disabled id="inputProductoInvent" style="width: 80%; height: 50px; margin-top: 25px;" type="text" class="nes-input"></input>
+                <label for="inputCantidadInventUpdate" style="margin-top: 25px;">Cantidad</label>
+                <input id="inputCantidadInventUpdate" style="width: 80%; height: 50px; margin-top: 25px;" type="number" class="nes-input"></input>
+                <menu class="dialog-menu">
+                    <button class="nes-btn">Cancel</button>
+                    <button class="nes-btn is-success" id="confirmEditButtonInventory">Confirm</button>
                 </menu>
             </form>
         </dialog>
