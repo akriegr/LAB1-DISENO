@@ -70,6 +70,89 @@
             throw error;
         }
     }
+    async function createInventario(idProducto, cantidad) {
+        try {
+            const nuevoInventario = {
+                idProducto: Number(idProducto),
+                cantidad: Number(cantidad)
+            };
+            const response = await fetch('http://localhost:5050/LAB/inventario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(nuevoInventario)
+            });
+            await refreshInventoryTable();
+            llenarSelectInventario();
+            const mensaje = await response.text();
+            console.log('Response status:', response.status);
+            console.log('Mensaje de respuesta:', mensaje);
+            if (response.status === 500) {
+                hideLoadingModal();
+                showErrorModal(mensaje);
+            }else if(response.status === 409){
+                hideLoadingModal();
+                showErrorModal('El producto ya tiene un inventario asociado');
+            }else if(response.status === 200){
+                hideLoadingModal();
+                showSuccessModal(mensaje);
+            }
+            return { mensaje: mensaje };
+        } catch (error) {
+            console.error('Error creating inventario:', error);
+            throw error;
+        }
+    }
+    async function createVenta(venta){
+        try{
+            const response = await fetch('http://localhost:5050/LAB/venta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(venta)
+            });
+            const mensaje = await response.text();
+            refreshInventoryTable();
+            if (response.status === 500) {
+                hideLoadingModal();
+                showErrorModal('Error al crear venta');
+            }else if(response.status === 409){
+                hideLoadingModal();
+                showErrorModal('El producto no tiene suficiente inventario');
+            }else if(response.status === 200){
+                hideLoadingModal();
+                showSuccessModal(mensaje);
+            }
+        }catch (error) {
+            console.error('Error creating venta:', error);
+            showErrorModal('Error al crear venta');
+        }
+    }
+    async function createFactura(monto,fecha){
+        try {
+            const nuevaFactura = {
+                monto: Number(monto),
+                fecha: fecha
+            };
+            const response = await fetch('http://localhost:5050/LAB/factura', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(nuevaFactura)
+            });
+            if (response.status === 500) {
+                return null;
+            }else{
+                return response.text();
+            }
+        } catch (error) {
+            console.error('Error creating factura:', error);
+            throw error;
+        }
+    }
     async function updateProducto(id, nombre, precio, idCategoria) {
         try {
             showLoadingModal();
@@ -213,7 +296,7 @@
     }
     async function fillTableInventario(){
         try {
-            const tablaInventario = document.getElementById('tableInventario');
+            const tablaInventario = document.getElementById('tableInventario').querySelector('tbody');
             const loadingRow = document.createElement('tr');
             loadingRow.innerHTML = `<td colspan="4" style="text-align: center;">Cargando inventario...</td>`;
             tablaInventario.appendChild(loadingRow);
@@ -221,11 +304,9 @@
             const productosPromises = inventario.map(item =>
                 fecthProductById(item.idProducto));
             const productos = await Promise.all(productosPromises);
-            tablaInventario.removeChild(loadingRow);
+            tablaInventario.innerHTML = '';
             inventario.forEach((input,index) => {
                 const row = document.createElement('tr');
-                console.log(input.idProducto);
-                console.log(input.id);
                 row.innerHTML = `
                     <td>${productos[index].nombre}</td>
                     <td>${input.cantidad}</td>
@@ -433,6 +514,57 @@
         modal.dataset.inventarioId = inventarioId; 
         modal.showModal();
     }
+    async function completarVenta() {
+        const table =  document.getElementById('tableVenta');
+        showLoadingModal();
+        try{
+            const rows = Array.from(table.rows).filter(row => row.rowIndex !== 0); // Excluir la fila del encabezado
+            if (rows.length === 0) {
+                hideLoadingModal();
+                showErrorModal('No hay productos en la venta');
+                return;
+            }else{
+                const productosVenta = [];
+                const ventas = []; 
+                var totalVenta = 0;
+                rows.forEach(row => {
+                    const productoId = row.dataset.productId;
+                    const nombreProducto = row.cells[0].textContent;
+                    const cantidad = parseInt(row.cells[1].textContent, 10);
+                    const total = parseFloat(row.cells[2].textContent);
+                    totalVenta += total;
+                    productosVenta.push({ productoId, nombreProducto, cantidad, total });
+                    ventas.push({
+                        cantidad: cantidad,
+                        idProducto: parseInt(productoId),
+                        idFactura: 5
+                    });
+                });
+                var monto = totalVenta;
+                var fecha =  new Date().toISOString().split('T')[0];
+                idFactura = await createFactura(monto,fecha);
+                console.log(ventas);
+                console.log("idFactura: "+idFactura);
+                if (idFactura === null) {
+                    hideLoadingModal();
+                    showErrorModal('Error al crear la factura');
+                    return;
+                }else{
+                    ventas.forEach(async venta => {
+                        console.log("VENTA: ", JSON.stringify(venta));
+                        await createVenta(venta);
+                    });
+                    showSuccessModal('Venta completada con éxito');
+                }
+                hideLoadingModal();
+                return productosVenta;
+            }
+        }catch(error){
+            hideLoadingModal();
+            console.error('Error al completar la venta:', error);
+            showErrorModal('Error al completar la venta');
+        }
+    }
     async function llenarSelectProducto(){
         try{
             const selectCategoria = document.getElementById('categoriaSelectNueva');
@@ -449,6 +581,27 @@
                 option.value = categoria.id;
                 option.textContent = categoria.nombre;
                 selectCategoria.appendChild(option);
+            });
+        }catch (error) {
+            console.error('Error filling select:', error);
+        }
+    }
+    async function llenarSelectProductoVenta(){
+        try{
+            const selectVenta = document.getElementById('productoVenta');
+            if (selectVenta.options.length > 0) {
+            selectVenta.innerHTML = '';
+        }
+            const producto = await fetchProducts();
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Producto';
+            selectVenta.appendChild(defaultOption);
+            producto.forEach(producto => {
+                const option = document.createElement('option');
+                option.value = producto.id;
+                option.textContent = producto.nombre;
+                selectVenta.appendChild(option);
             });
         }catch (error) {
             console.error('Error filling select:', error);
@@ -504,6 +657,26 @@
         mensaje.textContent = message;
         modal.showModal();
     }
+    function agregarFilaVenta(productoId,nombreProducto, cantidad,total) {
+        const tablaVenta = document.getElementById('tableVenta');
+        const row = document.createElement('tr');
+        row.dataset.productId = productoId;
+        row.innerHTML = `
+            <td>${nombreProducto}</td>
+            <td>${cantidad}</td>
+            <td>${total}</td>
+            <td><button type="button" class="nes-btn is-error">Eliminar</button></td>
+        `;
+        const btnEliminar = row.querySelector('button');
+        btnEliminar.addEventListener('click', function() {
+            row.remove();
+        });
+        tablaVenta.appendChild(row);
+        const productoSelect = document.getElementById('productoVenta');
+        const cantidadInput = document.getElementById('cantidadVenta');
+        productoSelect.selectedIndex = 0;
+        cantidadInput.value = ''; 
+    }
     //**************************//
 document.addEventListener('DOMContentLoaded', async function() {
     document.getElementById('confirmEditButtonProduct').addEventListener('click', async function() {
@@ -548,7 +721,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             precioInput.value = '';
             document.getElementById('categoriaSelectNueva').selectedIndex = 0;
             hideLoadingModal();
-            showSuccessModal(resultado.mensaje);
         }catch(error) {
             console.error('Error creando product:', error);
         }
@@ -580,9 +752,49 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.error('Error creando categoria:', error);
         }
     });
+    document.getElementById('confirmIventarioSaveBtn').addEventListener('click', async function() {
+        const productoSelect = document.getElementById('productoSelectInventarioNuevo');
+        const cantidadInput = document.getElementById('inputCantidadNuevo');
+        showLoadingModal();
+        try{
+            const resultado = await createInventario(productoSelect.value, cantidadInput.value);
+            productoSelect.selectedIndex = 0;
+            cantidadInput.value = '';
+            hideLoadingModal();
+        }catch(error) {
+            console.error('Error creando inventario:', error);
+        }
+    });
+    document.getElementById('agregarRowVenta').addEventListener('click', async function() {
+        const productoSelect = document.getElementById('productoVenta');
+        const cantidadInput = document.getElementById('cantidadVenta');
+        if (productoSelect.value === '' || cantidadInput.value === '') {
+            showErrorModal('Por favor, seleccione un producto y una cantidad.');
+            return;
+        }else{
+            producto = await fecthProductById(productoSelect.value);
+            precio = producto.precio * (cantidadInput.value);
+            console.log(`Producto seleccionado: ${producto.nombre}, Precio: ${precio}`);
+            agregarFilaVenta(productoSelect.value, producto.nombre, cantidadInput.value, precio);
+        }
+    });
+    document.getElementById('confirmVentaBtn').addEventListener('click', async function() {
+        try{
+            completarVenta();
+            const tableVenta = document.getElementById('tableVenta');
+            while (tableVenta.rows.length > 1) {
+                tableVenta.innerHTML=''; // Eliminar todas las filas excepto la primera (encabezado)
+            }
+        }catch(error) {
+            console.error('Error al completar la venta:', error);
+            showErrorModal('Error al completar la venta');
+        }
+    });
     llenarSelectProducto();
     llenarSelectInventario();
+    llenarSelectProductoVenta();
     fillTableProducto();
     fillTableCategorias();
     fillTableInventario();
+
 });

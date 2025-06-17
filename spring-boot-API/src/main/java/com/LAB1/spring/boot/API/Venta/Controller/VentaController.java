@@ -16,6 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/LAB")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class VentaController {
     private final VentaService ventaService;
     private final InventarioService inventarioService;

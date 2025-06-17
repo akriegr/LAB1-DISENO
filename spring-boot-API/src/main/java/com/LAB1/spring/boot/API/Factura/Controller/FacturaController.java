@@ -26,7 +26,7 @@ public class FacturaController {
     public ResponseEntity<?> addFactura(@RequestBody FacturaDTO facturaDTO) {
         try{
             FacturaDTO newfacturaDTO = facturaService.saveFactura(facturaDTO);
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body("Factura creada con exito");
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(newfacturaDTO.getId());
         }catch(Exception e){
             System.err.println("Error al crear la factura: "+e.getMessage());
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Error al crear factura");

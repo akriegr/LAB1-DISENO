@@ -142,13 +142,70 @@
                 <button class="nes-btn is-primary" id="confirmIventarioSaveBtn">Confirm</button>
                 <button class="nes-btn">Cancel</button>
             </div>
+        </div>
     </section>
-    <div id="Ventas">
-
-    </div>
-    <div id="Factura">
-
-    </div>
+    <section class="nes-container with-title is-centered" style="display: flex; justify-content: space-between;" id="Ventas">
+        <p class="title">Ventas</p>
+        <div class="nes-table-responsive left-div" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width:50%"
+            id="tableContainer">
+            <table class="nes-table is-bordered is-centered" id="tableReportes">
+                <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                    <th>Categoria</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div id="crearVenta" class="right div" style="
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 60%;
+        ">
+            <p class="title">Crear Venta</p>
+            <div id="groupCrear" style="
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            ">
+                <div class="nes-select" style="
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    align-items: center;"
+                >
+                    <select required id="productoVenta" style="height: 50px; width:30%;">
+                    </select>
+                    <input id="cantidadVenta" style="height: 50px; width: 20%;" type="number" class="nes-input" placeholder="Cantidad"></input>
+                    <button class="nes-btn is-success" id="agregarRowVenta" style="height: 50px; width:35%;">Agregar Producto</button>
+                </div>
+            </div>
+                <table class="nes-table-responsive is-centered" style="width: 100%;"id="tableVenta">
+                        <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                        </tr>
+                </table>
+            <div style="margin-top: 25px;">
+                <button class="nes-btn is-primary" id="confirmVentaBtn">Confirm</button>
+                <button class="nes-btn">Cancel</button>
+            </div>
+        </div>
+    </section>
     <section>
         <dialog class="nes-dialog" id="editProductModal">
             <form method="dialog">
