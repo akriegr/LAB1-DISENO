@@ -773,8 +773,6 @@
             const modal = document.getElementById('verFacturaModal');
             const tbody = document.getElementById('tableVentaFacturaVer').querySelector('tbody');
             const total = document.getElementById('totalFacturaVista');
-            tbody.innerHTML = '';
-            total.textContent = '';
             var ventas = await fetchVentasbyFactura(id);
             var factura = await fetchFacturaById(id);
             console.log(ventas);
